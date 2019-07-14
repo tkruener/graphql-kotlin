@@ -4,6 +4,8 @@ import com.expedia.graphql.generator.extensions.getName
 import com.expedia.graphql.generator.extensions.isDataFetchingEnvironment
 import com.expedia.graphql.generator.extensions.isGraphQLContext
 import com.expedia.graphql.generator.extensions.javaTypeClass
+import com.expedia.graphql.paramters.CustomGraphQlParameterResolver
+import com.expedia.graphql.paramters.NoCustomParamters
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import graphql.schema.DataFetcher
@@ -30,16 +32,17 @@ class FunctionDataFetcher(
     private val target: Any?,
     private val fn: KFunction<*>,
     private val objectMapper: ObjectMapper = jacksonObjectMapper(),
+    private val parameterResolver: CustomGraphQlParameterResolver = NoCustomParamters,
     private val executionPredicate: DataFetcherExecutionPredicate? = null
 ) : DataFetcher<Any> {
 
     @Suppress("Detekt.SpreadOperator")
     override fun get(environment: DataFetchingEnvironment): Any? {
-        val instance = target ?: environment.getSource<Any>()
+        val instance = target ?: environment.getSource<Any?>()
 
         return instance?.let {
             val parameterValues = fn.valueParameters
-                .map { param -> mapParameterToValue(param, environment) }
+                .map { param -> mapParameterToValue(instance, fn, param, environment) }
                 .toTypedArray()
 
             if (fn.isSuspend) {
@@ -56,12 +59,12 @@ class FunctionDataFetcher(
         }
     }
 
-    private fun mapParameterToValue(param: KParameter, environment: DataFetchingEnvironment): Any? =
-        when {
-            param.isGraphQLContext() -> environment.getContext()
-            param.isDataFetchingEnvironment() -> environment
-            else -> convertParameterValue(param, environment)
-        }
+    private fun mapParameterToValue(instance: Any, function: KFunction<*>, param: KParameter, environment: DataFetchingEnvironment): Any? = when {
+        param.isGraphQLContext() -> environment.getContext()
+        param.isDataFetchingEnvironment() -> environment
+        parameterResolver.isCustomlyResolvedArgument(function, param) -> parameterResolver.resolve(instance, param, environment)
+        else -> convertParameterValue(param, environment)
+    }
 
     private fun convertParameterValue(param: KParameter, environment: DataFetchingEnvironment): Any? {
         val name = param.getName()

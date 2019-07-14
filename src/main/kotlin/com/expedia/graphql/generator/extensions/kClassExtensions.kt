@@ -5,6 +5,7 @@ import com.expedia.graphql.generator.filters.functionFilters
 import com.expedia.graphql.generator.filters.propertyFilters
 import com.expedia.graphql.generator.filters.superclassFilters
 import com.expedia.graphql.hooks.SchemaGeneratorHooks
+import com.expedia.graphql.hooks.TopLevelType
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -25,6 +26,10 @@ internal fun KClass<*>.getValidProperties(hooks: SchemaGeneratorHooks): List<KPr
     this.memberProperties
         .filter { hooks.isValidProperty(it) }
         .filter { prop -> propertyFilters.all { it.invoke(prop, this) } }
+
+internal fun KClass<*>.getValidTopLevelFunctions(hooks: SchemaGeneratorHooks, type: TopLevelType) =
+    getValidFunctions(hooks)
+        .filter { hooks.isValidTopLevelFunction(type, it) }
 
 internal fun KClass<*>.getValidFunctions(hooks: SchemaGeneratorHooks): List<KFunction<*>> =
     this.memberFunctions

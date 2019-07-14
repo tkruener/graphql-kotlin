@@ -25,12 +25,13 @@ open class KotlinDataFetcherFactoryProvider(private val hooks: SchemaGeneratorHo
      * @param kFunction Kotlin function being invoked
      */
     open fun functionDataFetcherFactory(target: Any?, kFunction: KFunction<*>): DataFetcherFactory<Any> =
-            DataFetcherFactories.useDataFetcher(
-                FunctionDataFetcher(
-                        target = target,
-                        fn = kFunction,
-                        objectMapper = defaultObjectMapper,
-                        executionPredicate = hooks.dataFetcherExecutionPredicate))
+        DataFetcherFactories.useDataFetcher(
+            FunctionDataFetcher(
+                target = target,
+                fn = kFunction,
+                objectMapper = defaultObjectMapper,
+                parameterResolver = hooks.parameterResolver,
+                executionPredicate = hooks.dataFetcherExecutionPredicate))
 
     /**
      * Retrieve instance of [DataFetcherFactory] that will be used to resolve target property.

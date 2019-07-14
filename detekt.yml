@@ -25,9 +25,9 @@ complexity:
   TooManyFunctions:
     thresholdInInterfaces: 15
     thresholdInClasses: 15
-    thresholdInFiles: 15
+    thresholdInFiles: 20
   ComplexInterface:
-    threshold: 15
+    threshold: 20
 
 style:
   MagicNumber:

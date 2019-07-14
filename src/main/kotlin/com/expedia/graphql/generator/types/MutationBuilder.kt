@@ -4,8 +4,9 @@ import com.expedia.graphql.TopLevelObject
 import com.expedia.graphql.exceptions.InvalidMutationTypeException
 import com.expedia.graphql.generator.SchemaGenerator
 import com.expedia.graphql.generator.TypeBuilder
-import com.expedia.graphql.generator.extensions.getValidFunctions
+import com.expedia.graphql.generator.extensions.getValidTopLevelFunctions
 import com.expedia.graphql.generator.extensions.isNotPublic
+import com.expedia.graphql.hooks.TopLevelType
 import graphql.schema.GraphQLObjectType
 
 internal class MutationBuilder(generator: SchemaGenerator) : TypeBuilder(generator) {
@@ -28,7 +29,7 @@ internal class MutationBuilder(generator: SchemaGenerator) : TypeBuilder(generat
                 mutationBuilder.withDirective(it)
             }
 
-            mutation.kClass.getValidFunctions(config.hooks)
+            mutation.kClass.getValidTopLevelFunctions(config.hooks, TopLevelType.Mutation)
                 .forEach {
                     val function = generator.function(it, config.topLevelNames.mutation, mutation.obj)
                     val functionFromHook = config.hooks.didGenerateMutationType(it, function)

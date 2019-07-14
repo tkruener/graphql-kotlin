@@ -46,6 +46,7 @@ internal class FunctionBuilder(generator: SchemaGenerator) : TypeBuilder(generat
             .filterNot { it.isGraphQLContext() }
             .filterNot { it.isGraphQLIgnored() }
             .filterNot { it.isDataFetchingEnvironment() }
+            .filterNot { config.hooks.parameterResolver.isCustomlyResolvedArgument(fn, it) }
             .forEach {
                 // deprecation of arguments is currently unsupported: https://github.com/facebook/graphql/issues/197
                 builder.argument(argument(it))

@@ -17,6 +17,7 @@ import kotlin.reflect.full.createType
 internal class ObjectBuilder(generator: SchemaGenerator) : TypeBuilder(generator) {
 
     internal fun objectType(kClass: KClass<*>, interfaceType: GraphQLInterfaceType? = null): GraphQLType {
+
         return state.cache.buildIfNotUnderConstruction(kClass) {
             val builder = GraphQLObjectType.newObject()
 
@@ -46,7 +47,18 @@ internal class ObjectBuilder(generator: SchemaGenerator) : TypeBuilder(generator
             kClass.getValidFunctions(config.hooks)
                 .forEach { builder.field(generator.function(it, name)) }
 
+            builder.addExtenders(it)
+
             config.hooks.onRewireGraphQLType(builder.build()).safeCast()
+        }
+    }
+
+    private fun GraphQLObjectType.Builder.addExtenders(kClass: KClass<*>) {
+        val extenders = config.hooks.getTypeExtenders(kClass)
+        extenders.forEach { extender ->
+            extender.functions.forEach {
+                field(generator.function(it, kClass.getSimpleName(), extender.target))
+            }
         }
     }
 }
